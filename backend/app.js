@@ -1,38 +1,31 @@
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
-import { ddbDocClient } from "./libs/document.js";
+// Import required AWS SDK clients and commands for Node.js
+import { UpdateItemCommand } from "@aws-sdk/client-dynamodb";
+import { ddbClient } from "./libs/client.js";
 
 function getRandomInt(max = 29) {
-  return Math.floor(Math.random() * max);
+    return Math.floor(Math.random() * max);
 }
 
-function getUuid() {
-  return String(new Date().getTime());
-}
-
-const uuid = getUuid();
-
-export async function handler() {
-  const TABLE_NAME = process.env.TABLE_NAME;
-
+export const run = async () => {
   try {
-    const data = await ddbDocClient.send(
-      new PutCommand({
-        TableName: TABLE_NAME,
-        Item: {
-          id: getUuid(),
-          count: getRandomInt()
-        }
+    const data = await ddbClient.send(
+      new UpdateItemCommand({
+        TableName: process.env.TABLE_NAME,
+        Key: { "id": {S: "pk-001"} },
+        UpdateExpression: "set itemCount = :c",
+        ExpressionAttributeValues: {
+            ":c": { N: String(getRandomInt()) },
+        },
+        ReturnValues: "UPDATED_NEW"
       })
     );
     return {
-      statusCode: 200,
-      isBase64Encoded: false,
-      body: { count, ...data }
+        statusCode: 200,
+        isBase64Encoded: false,
+        body: JSON.stringify({ data: data })
     };
-  } catch(err) {
-      console.log(err);
-      return {
-        statusCode: 500
-      };
+  } catch (err) {
+    console.error('error', err);
+    return JSON.stringify({ error: err });
   }
 };
