@@ -24,11 +24,11 @@ jobs:
 workflows:
   deploy-sam:
     jobs:
-      sam/deploy:
-        name: deploy
-        stack-name: crc-backend-app
-        s3-bucket: crc-backend-artifacts
-        context: aws-credentials-context
-        template: .circleci/files/backend.yml
-        base-dir: .
+      - sam/deploy:
+          name: deploy
+          stack-name: crc-backend-app
+          s3-bucket: crc-backend-artifacts
+          context: aws-credentials-context
+          template: .circleci/files/backend.yml
+          base-dir: .
         
