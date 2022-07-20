@@ -26,8 +26,8 @@ workflows:
     jobs:
       - sam/deploy:
           name: deploy
+          base-dir: .
           stack-name: crc-backend-app
           s3-bucket: crc-backend-artifacts
           template: .circleci/files/backend.yml
-          base-dir: .
         

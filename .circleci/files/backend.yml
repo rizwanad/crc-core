@@ -6,6 +6,11 @@ Globals:
   Function:
     Timeout: 3
 
+Parameters:
+  StageName:
+    Type: String
+    Default: prod
+
 Description: >
   CRC Backend app
 
@@ -44,7 +49,7 @@ Resources:
   CRCBackendApiGateway:
     Type: AWS::Serverless::HttpApi
     Properties:
-      StageName: prod
+      StageName: !Ref StageName
       AccessLogSettings:
         DestinationArn: !GetAtt CRCBackendApiGatewayAccessLogs.Arn
         Format: $context.requestId
