@@ -1,6 +1,34 @@
 version: 2.1
 
+orbs:
+  aws-sam-serverless: circleci/aws-sam-serverless@3.2.0
+
 jobs:
-  
+  build-frontend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-build]
+      - run:
+          name: Build front-end
+          command: |
+            cd frontend
+            npm install
+            npm run build
+      - save_cache:
+          paths: [frontend/node_modules]
+          key: frontend-build
 
 workflows:
+  deploy-sam:
+    jobs:
+      sam/deploy:
+        name: deploy
+        stack-name: crc-backend-app
+        s3-bucket: crc-backend-artifacts
+        context: aws-credentials-context
+        template: .circleci/files/backend.yml
+        base-dir: .
+        
