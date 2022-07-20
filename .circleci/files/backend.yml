@@ -37,10 +37,6 @@ Resources:
             Method: POST
             ApiId:
               Ref: CRCBackendApiGateway
-
-  CRCBackendApiGatewayLogging:
-    DestinationArn: !GetAtt CRCBackendApiGatewayAccessLogs.Arn
-    Format: $context.requestId
   
   CRCBackendApiGatewayAccessLogs:
     Type: AWS::Logs::LogGroup
@@ -50,7 +46,8 @@ Resources:
     Properties:
       StageName: prod
       AccessLogSettings:
-
+        DestinationArn: !GetAtt CRCBackendApiGatewayAccessLogs.Arn
+        Format: $context.requestId
       CorsConfiguration:
         AllowCredentials: false
         AllowMethods:
