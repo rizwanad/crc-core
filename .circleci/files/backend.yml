@@ -15,8 +15,8 @@ Resources:
   CRCBackendLambdaFunction:
     Type: AWS::Serverless::Function
     Properties: 
-      CodeUri: src/
-      Handler: app.handler
+      CodeUri: backend/
+      Handler: app.run
       Runtime: nodejs16.x
       Architectures:
         - x86_64
