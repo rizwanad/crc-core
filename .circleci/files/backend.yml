@@ -66,12 +66,12 @@ Resources:
         Department: Engineering
         AppType: Cloud Resume challenge serverless
 
-  Outputs:
-    # HttpApiUrl:
-    #   Description: URL of your API endpoint
-    #   Value:
-    #     Fn::Sub: https://${CRCBackendApiGateway}.execute-api.${AWS::Region}.${AWS::URLSuffix}/${StageName}/
-    HttpApiId:
+  Outputs: 
+    BackupLoadBalancerDNSName: 
+      Description: URL of your API endpoint
+      Value:
+        Fn::Sub: https://${CRCBackendApiGateway}.execute-api.${AWS::Region}.${AWS::URLSuffix}/${StageName}/
+    InstanceID: 
       Description: Api id of HttpApi
       Value:
         Ref: CRCBackendApiGateway
