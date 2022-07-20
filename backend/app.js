@@ -11,7 +11,11 @@ export const run = async () => {
     const data = await ddbClient.send(
       new UpdateItemCommand({
         TableName: process.env.TABLE_NAME,
-        Key: { "id": {S: "pk-001"} },
+        Key: { 
+          "id": {
+            S: "pk-001"
+          } 
+        },
         UpdateExpression: "set itemCount = :c",
         ExpressionAttributeValues: {
             ":c": { N: String(getRandomInt()) },
