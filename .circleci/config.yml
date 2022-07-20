@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  aws-sam-serverless: circleci/aws-sam-serverless@3.2.0
+  sam: circleci/aws-sam-serverless@3.2.0
 
 jobs:
   build-frontend:
@@ -22,13 +22,12 @@ jobs:
           key: frontend-build
 
 workflows:
-  deploy-sam:
+  default:
     jobs:
       - sam/deploy:
           name: deploy
           stack-name: crc-backend-app
           s3-bucket: crc-backend-artifacts
-          context: aws-credentials-context
           template: .circleci/files/backend.yml
           base-dir: .
         
