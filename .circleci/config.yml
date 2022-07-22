@@ -35,7 +35,7 @@ jobs:
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
   deploy-backend:
     docker:
-      - image: ubuntu:20.04
+      - image: amazon/aws-cli
     steps:
       - checkout
       - sam/build:
