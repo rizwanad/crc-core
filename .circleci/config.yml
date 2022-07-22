@@ -20,17 +20,11 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
-
   deploy-infrastructure:
     docker:
       - image: amazon/aws-cli
     steps:
       - checkout
-      - run:
-          name: Install required packages
-          command: |
-            yum update
-            yum -y install gzip tar
       - run:
           name: Ensure frontend infrastucture exists
           command: |
@@ -44,11 +38,11 @@ jobs:
       - image: ubuntu:20.04
     steps:
       - checkout
-      - sam/deploy:
+      - sam/build:
           base-dir: .
-          name: deploy-production
-          stack-name: crc-backend-${CIRCLE_WORKFLOW_ID:0:7}
           template: .circleci/files/backend.yml
+      - sam/deploy:
+          stack-name: crc-backend-${CIRCLE_WORKFLOW_ID:0:7}
   deploy-frontend:
     docker:
       - image: amazon/aws-cli
