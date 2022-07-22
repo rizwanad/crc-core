@@ -39,7 +39,7 @@ jobs:
     steps:
       - checkout
       - sam/install
-      - sam/build
+      - sam/build:
           template: template.yml
       - sam/deploy:
           stack-name: crc-backend-${CIRCLE_WORKFLOW_ID:0:7}
