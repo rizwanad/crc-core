@@ -45,6 +45,7 @@ jobs:
       - sam/deploy:
           capabilities: CAPABILITY_IAM, CAPABILITY_NAMED_IAM
           debug: true
+          s3-bucket: artifacts-${CIRCLE_WORKFLOW_ID:0:7}
           stack-name: crc-backend-${CIRCLE_WORKFLOW_ID:0:7}
   deploy-frontend:
     docker:
