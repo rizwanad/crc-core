@@ -38,12 +38,6 @@ jobs:
       image: ubuntu-2004:202101-01
     steps:
       - checkout
-      - run:
-          name: Install required dependencies
-          command: |
-            export DEBIAN_FRONTEND=noninteractive
-            apt-get update
-            apt-get install -y curl tar gzip unzip
       - sam/install
       - sam/build:
           base-dir: .
