@@ -43,7 +43,7 @@ jobs:
           command: |
             export DEBIAN_FRONTEND=noninteractive
             apt-get update
-            apt-get install -y curl tar gzip
+            apt-get install -y curl tar gzip unzip
       - sam/install
       - sam/build:
           base-dir: .
