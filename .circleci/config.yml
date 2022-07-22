@@ -42,7 +42,7 @@ jobs:
           name: Install required packages
           command: |
             yum update
-            yum -y install gzip tar curl
+            yum -y install gzip tar
       - sam/install
       - sam/build:
           base-dir: .
