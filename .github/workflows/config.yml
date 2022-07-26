@@ -23,6 +23,7 @@ jobs:
   deploy-backend:
     runs-on: ubuntu-latest
     environment: production
+    needs: deploy-infrastructure
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
@@ -46,6 +47,7 @@ jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
     environment: production
+    needs: deploy-backend
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
