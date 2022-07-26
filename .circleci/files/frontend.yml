@@ -10,7 +10,7 @@ Resources:
   WebsiteBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "crc-${ID}"
+      BucketName: !Sub "crc-frontend-${ID}"
       Tags:
         - Key: "project"
           Value: "cloud resume challenge"

@@ -55,7 +55,7 @@ jobs:
           command: |
             curl -sL https://rpm.nodesource.com/setup_13.x | bash -
             yum -y install nodejs
-            yum -y install tar gzip
+            yum -y install tar gzip jq
             cd frontend && npm install
       - run:
           name: Get backend api gateway url
