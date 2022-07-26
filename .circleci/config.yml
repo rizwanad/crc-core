@@ -1,7 +1,10 @@
 version: 2.1
 
 orbs:
+  awscli: circleci/aws-cli@3.1.1
   sam: circleci/aws-sam-serverless@3.2.0
+
+
 
 jobs:
   build-frontend:
@@ -46,16 +49,17 @@ jobs:
           s3-bucket: crc-template-artifact
           stack-name: crc-backend-${CIRCLE_WORKFLOW_ID:0:7}
   deploy-frontend:
-    docker:
-      - image: amazon/aws-cli
+    executor: awscli/default
     steps:
       - checkout
+      - awscli/install
+      - awscli/setup:
+          profile-name: default
       - run:
           name: Install dependencies
           command: |
-            curl -sL https://rpm.nodesource.com/setup_13.x | bash -
-            yum -y install nodejs
-            yum -y install tar gzip jq
+            sudo apt-get update
+            sudo apt-get install -y tar gzip jq
             cd frontend && npm install
       - run:
           name: Get backend api gateway url
@@ -75,14 +79,19 @@ jobs:
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz build
             aws s3 cp build s3://crc-frontend-6a20da1 --recursive
 
+  test:
+    docker:
+      - image: amazon/aws-cli:2.7.11
+    steps:
+      - checkout
+
 workflows:
   default:
     jobs:
-      - deploy-frontend
       # - build-frontend
       # - deploy-infrastructure:
       #     requires: [build-frontend]
       # - deploy-backend:
       #     requires: [deploy-infrastructure]
-      # - deploy-frontend:
+      - deploy-frontend
       #     requires: [deploy-backend]
