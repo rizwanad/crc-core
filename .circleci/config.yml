@@ -73,15 +73,16 @@ jobs:
             npm install
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz build
-            aws s3 cp build s3://crc-frontend-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+            aws s3 cp build s3://crc-frontend-6a20da1 --recursive
 
 workflows:
   default:
     jobs:
-      - build-frontend
-      - deploy-infrastructure:
-          requires: [build-frontend]
-      - deploy-backend:
-          requires: [deploy-infrastructure]
-      - deploy-frontend:
-          requires: [deploy-backend]
+      - deploy-frontend
+      # - build-frontend
+      # - deploy-infrastructure:
+      #     requires: [build-frontend]
+      # - deploy-backend:
+      #     requires: [deploy-infrastructure]
+      # - deploy-frontend:
+      #     requires: [deploy-backend]
