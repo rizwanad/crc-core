@@ -39,7 +39,8 @@ jobs:
     steps:
       - checkout
       - sam/install
-      - sam/build
+      - sam/build:
+          template: template.yml
       - sam/deploy:
           debug: true
           s3-bucket: crc-template-artifact
