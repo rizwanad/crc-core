@@ -18,4 +18,4 @@ jobs:
           aws-region: us-east-1
 
       - run: sam build --use-container --base-dir . --template .github/files/backend.yml
-      - run: ls ${{github.workspace}}
+      - run: ls -la ${{github.workspace}}
