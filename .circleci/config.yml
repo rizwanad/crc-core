@@ -80,7 +80,7 @@ workflows:
       - build-frontend
       - deploy-infrastructure:
           requires: [build-frontend]
-      - deploy-backend
+      - deploy-backend:
           requires: [deploy-infrastructure]
       - deploy-frontend:
           requires: [deploy-backend]
