@@ -2,6 +2,11 @@ name: Test aws
 on: [push]
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: echo ${GITHUB_RUN_ID}-${GITHUB_RUN_NUMBER}
   deploy-backend:
     runs-on: ubuntu-latest
     environment: production
@@ -21,6 +26,6 @@ jobs:
       - run: |
           sam deploy --no-confirm-changeset \
             --no-fail-on-empty-changeset \
-            --stack-name crc-backend-${{ github.GITHUB_RUN_ID }} \
-            --s3-bucket crc-template-artifact
-            --capabilities "CAPABILITY_IAM CAPABILITY_NAMED_IAM" \
+            --stack-name crc-backend-${GITHUB_RUN_ID} \
+            --s3-bucket crc-template-artifact \
+            --capabilities CAPABILITY_IAM
