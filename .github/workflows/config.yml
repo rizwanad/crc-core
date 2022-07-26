@@ -2,52 +2,52 @@ name: Test aws
 on: [push]
 
 jobs:
-  deploy-infrastructure:
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - uses: actions/checkout@v3
-      - uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-      - name: Ensure frontend infrastucture exists
-        run: |
-          aws cloudformation deploy \
-            --template-file ./.github/files/frontend.yml \
-            --tags project=crc-core \
-            --stack-name "crc-frontend-${GITHUB_RUN_ID}" \
-            --parameter-overrides ID="${GITHUB_RUN_ID}"
+  # deploy-infrastructure:
+  #   runs-on: ubuntu-latest
+  #   environment: production
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: us-east-1
+  #     - name: Ensure frontend infrastucture exists
+  #       run: |
+  #         aws cloudformation deploy \
+  #           --template-file ./.github/files/frontend.yml \
+  #           --tags project=crc-core \
+  #           --stack-name "crc-frontend-${GITHUB_RUN_ID}" \
+  #           --parameter-overrides ID="${GITHUB_RUN_ID}"
 
-  deploy-backend:
-    runs-on: ubuntu-latest
-    environment: production
-    needs: deploy-infrastructure
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
-        with:
-          python-version: "3.8"
-      - uses: aws-actions/setup-sam@v2
-      - uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+  # deploy-backend:
+  #   runs-on: ubuntu-latest
+  #   environment: production
+  #   needs: deploy-infrastructure
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/setup-python@v3
+  #       with:
+  #         python-version: "3.8"
+  #     - uses: aws-actions/setup-sam@v2
+  #     - uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: us-east-1
 
-      - run: sam build --use-container
-      - run: |
-          sam deploy --no-confirm-changeset \
-            --no-fail-on-empty-changeset \
-            --stack-name crc-backend-${GITHUB_RUN_ID} \
-            --s3-bucket crc-template-artifact \
-            --capabilities CAPABILITY_IAM
+  #     - run: sam build --use-container
+  #     - run: |
+  #         sam deploy --no-confirm-changeset \
+  #           --no-fail-on-empty-changeset \
+  #           --stack-name crc-backend-${GITHUB_RUN_ID} \
+  #           --s3-bucket crc-template-artifact \
+  #           --capabilities CAPABILITY_IAM
   
   deploy-frontend:
     runs-on: ubuntu-latest
     environment: production
-    needs: deploy-backend
+    # needs: deploy-backend
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -59,18 +59,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      
       - name: Install dependencies
         run: |
-          export DEBIAN_FRONTEND=noninteractive
-          apt-get update
-          apt-get install -y tar gzip jq
+          sudo apt-get update
+          sudo apt-get install -y tar gzip jq
           cd frontend && npm install
       
       - name: Get backend api gateway url
         run: |
           export BACKEND_API_URL=$(aws cloudformation describe-stacks \
-            --stack-name crc-backend-${GITHUB_RUN_ID} | jq -r '.Stacks[].Outputs[] | select(.OutputKey=="HttpApiUrl") | .OutputValue')
+            --stack-name crc-backend-2739598864 | jq -r '.Stacks[].Outputs[] | select(.OutputKey=="HttpApiUrl") | .OutputValue')
           
           echo "API_URL = ${BACKEND_API_URL}"
           echo API_URL="${BACKEND_API_URL}" >> frontend/.env
@@ -82,4 +80,4 @@ jobs:
           npm install
           npm run build
           tar -czvf artifact-"${GITHUB_RUN_ID}".tar.gz build
-          aws s3 cp build s3://crc-frontend-${GITHUB_RUN_ID} --recursive
+          aws s3 cp build s3://crc-frontend-6a20da2 --recursive
