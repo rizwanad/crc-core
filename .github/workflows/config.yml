@@ -12,14 +12,14 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-      - run:
-          name: Ensure frontend infrastucture exists
-          command: |
-            aws cloudformation deploy \
-              --template-file ./.github/files/frontend.yml \
-              --tags project=crc-core \
-              --stack-name "crc-frontend-${GITHUB_RUN_ID}" \
-              --parameter-overrides ID="${GITHUB_RUN_ID}"
+      - name: Ensure frontend infrastucture exists
+        run: |
+          aws cloudformation deploy \
+            --template-file ./.github/files/frontend.yml \
+            --tags project=crc-core \
+            --stack-name "crc-frontend-${GITHUB_RUN_ID}" \
+            --parameter-overrides ID="${GITHUB_RUN_ID}"
+
   deploy-backend:
     runs-on: ubuntu-latest
     environment: production
@@ -59,27 +59,27 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - run:
-          name: Install dependencies
-          command: |
-            export DEBIAN_FRONTEND=noninteractive
-            apt-get update
-            apt-get install -y tar gzip jq
-            cd frontend && npm install
-      - run:
-          name: Get backend api gateway url
-          command: |
-            export BACKEND_API_URL=$(aws cloudformation describe-stacks \
-              --stack-name crc-backend-${GITHUB_RUN_ID} | jq -r '.Stacks[].Outputs[] | select(.OutputKey=="HttpApiUrl") | .OutputValue')
-            
-            echo "API_URL = ${BACKEND_API_URL}"
-            echo API_URL="${BACKEND_API_URL}" >> frontend/.env
-            cat frontend/.env
-      - run:
-          name: Deploy frontend objects
-          command: |
-            cd frontend
-            npm install
-            npm run build
-            tar -czvf artifact-"${GITHUB_RUN_ID}".tar.gz build
-            aws s3 cp build s3://crc-frontend-${GITHUB_RUN_ID} --recursive
+      
+      - name: Install dependencies
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y tar gzip jq
+          cd frontend && npm install
+      
+      - name: Get backend api gateway url
+        run: |
+          export BACKEND_API_URL=$(aws cloudformation describe-stacks \
+            --stack-name crc-backend-${GITHUB_RUN_ID} | jq -r '.Stacks[].Outputs[] | select(.OutputKey=="HttpApiUrl") | .OutputValue')
+          
+          echo "API_URL = ${BACKEND_API_URL}"
+          echo API_URL="${BACKEND_API_URL}" >> frontend/.env
+          cat frontend/.env
+      
+      - name: Deploy frontend objects
+        run: |
+          cd frontend
+          npm install
+          npm run build
+          tar -czvf artifact-"${GITHUB_RUN_ID}".tar.gz build
+          aws s3 cp build s3://crc-frontend-${GITHUB_RUN_ID} --recursive
