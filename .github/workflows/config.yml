@@ -18,4 +18,9 @@ jobs:
           aws-region: us-east-1
 
       - run: sam build --use-container
-      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
+      - run: |
+          sam deploy --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --stack-name crc-backend-${{ github.GITHUB_RUN_ID }} \
+            --s3-bucket crc-template-artifact
+            --capabilities "CAPABILITY_IAM CAPABILITY_NAMED_IAM" \
