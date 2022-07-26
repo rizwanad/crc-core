@@ -39,13 +39,10 @@ jobs:
     steps:
       - checkout
       - sam/install
-      - sam/build:
-          base-dir: .
-          template: .circleci/files/backend.yml
+      - sam/build
       - sam/deploy:
-          capabilities: CAPABILITY_IAM, CAPABILITY_NAMED_IAM
           debug: true
-          s3-bucket: artifacts-${CIRCLE_WORKFLOW_ID:0:7}
+          s3-bucket: crc-template-artifact
           stack-name: crc-backend-${CIRCLE_WORKFLOW_ID:0:7}
   deploy-frontend:
     docker:
@@ -80,10 +77,10 @@ jobs:
 workflows:
   default:
     jobs:
-      # - build-frontend
-      # - deploy-infrastructure:
-      #     requires: [build-frontend]
+      - build-frontend
+      - deploy-infrastructure:
+          requires: [build-frontend]
       - deploy-backend
-          # requires: [deploy-infrastructure]
-      # - deploy-frontend:
-          # requires: [deploy-backend]
+          requires: [deploy-infrastructure]
+      - deploy-frontend:
+          requires: [deploy-backend]
