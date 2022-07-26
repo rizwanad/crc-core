@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+# Globals that shared sam resources e.g, below applied to all Functions.
+Globals:
+  Function:
+    Timeout: 3
+
+Parameters:
+  StageName:
+    Type: String
+    Default: prod
+
+Description: >
+  CRC Backend app
+
+  Cloud resume challenge backend application.
+
+Resources:
+  CRCBackendLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties: 
+      CodeUri: backend/
+      Handler: app.run
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CRCDynamodbTable
+        - AWSLambdaBasicExecutionRole
+
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref CRCDynamodbTable
+
+      Events:
+        ApiEvent:
+          Type: HttpApi 
+          Properties:
+            Path: /count
+            Method: POST
+            ApiId:
+              Ref: CRCBackendApiGateway
+  
+  CRCBackendApiGatewayAccessLogs:
+    Type: AWS::Logs::LogGroup
+
+  CRCBackendApiGateway:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: !Ref StageName
+      AccessLogSettings:
+        DestinationArn: !GetAtt CRCBackendApiGatewayAccessLogs.Arn
+        Format: $context.requestId
+      CorsConfiguration:
+        AllowCredentials: false
+        AllowMethods:
+          - GET
+          - POST
+        AllowHeaders:
+          - CONTENT-TYPE
+        AllowOrigins:
+          - "*"
+        MaxAge: 600
+        
+  CRCDynamodbTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      Tags:
+        Department: Engineering
+        AppType: Cloud Resume challenge serverless
+
+Outputs: 
+  HttpApiUrl:
+    Description: URL of your API endpoint
+    Value:
+      Fn::Sub: 'https://${CRCBackendApiGateway}.execute-api.${AWS::Region}.${AWS::URLSuffix}/${StageName}/'
+  HttpApiId:
+    Description: Api id of HttpApi
+    Value:
+      Ref: CRCBackendApiGateway
