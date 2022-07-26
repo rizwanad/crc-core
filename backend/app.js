@@ -2,7 +2,7 @@
 import { UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 import { ddbClient } from "./libs/client.js";
 
-function getRandomInt(max = 29) {
+function getRandomInt(max = 29) { 
     return Math.floor(Math.random() * max);
 }
 
