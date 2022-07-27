@@ -13,7 +13,6 @@ jobs:
     environment: production
     steps:
       - name: Destroy environments
-        if: failure()
         run: |
           aws s3 rm s3://crc-<<inputs.workflow_id>> --recursive
           aws cloudformation delete-stack --stack-name udapeople-backend-<<inputs.workflow_id>>
