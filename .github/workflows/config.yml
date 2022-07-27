@@ -21,13 +21,6 @@ jobs:
             --tags project=crc-core \
             --stack-name "crc-frontend-${GITHUB_RUN_ID}" \
             --parameter-overrides ID="${GITHUB_RUN_ID}"
-
-      - name: Fail job intentionally
-        run: exit 1
-
-      uses: destroy-environment
-      with:
-        workflow_id: 1234
       
       - name: Destroy environments
         if: failure()
