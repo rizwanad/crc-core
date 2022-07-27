@@ -20,6 +20,6 @@ jobs:
 
       - name: Destroy environments
         run: |
-          aws s3 rm s3://crc-<<inputs.workflow_id>> --recursive
-          aws cloudformation delete-stack --stack-name udapeople-backend-<<inputs.workflow_id>>
-          aws cloudformation delete-stack --stack-name udapeople-frontend-<<inputs.workflow_id>>
+          aws s3 rm s3://crc-${{inputs.workflow_id}} --recursive
+          aws cloudformation delete-stack --stack-name crc-backend-${{inputs.workflow_id}}
+          aws cloudformation delete-stack --stack-name crc-frontend-{{inputs.workflow_id}}
