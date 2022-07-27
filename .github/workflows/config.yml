@@ -90,6 +90,7 @@ jobs:
   cloudfront-update:
     runs-on: ubuntu-latest
     environment: production
+    needs: [deploy-frontend]
     steps:
       - uses: actions/checkout@v3
       - uses: aws-actions/configure-aws-credentials@v1
@@ -119,6 +120,7 @@ jobs:
   cleanup:
     runs-on: ubuntu-latest
     environment: production
+    needs: cloudfront-update
     steps:
       - uses: actions/checkout@v3
       - uses: aws-actions/configure-aws-credentials@v1
