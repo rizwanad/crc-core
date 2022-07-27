@@ -7,14 +7,19 @@ jobs:
   failed-job:
     runs-on: ubuntu-latest
     steps:
-      run: exit 1
+      - run: exit 1
 
-  call-reusable-workflow:
-    uses: ./.github/workflows/on_fail.yml
-    if: failure()
-    secrets: inherit
-    with:
-      workflow_id: 2746130246
+  run-when-previous-failed:
+    runs-on: ubuntu-latest
+    if: ${{failure()}}
+    steps:
+      - run: echo "Previous jobs fail"
+
+  # call-reusable-workflow:
+  #   uses: ./.github/workflows/on_fail.yml
+  #   secrets: inherit
+  #   with:
+  #     workflow_id: 2746130246
 
   # deploy-infrastructure:
   #   runs-on: ubuntu-latest
