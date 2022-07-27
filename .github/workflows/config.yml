@@ -4,9 +4,14 @@ name: Cloud resume CI/CD pipeline
 on: [push]
 
 jobs:
+  failed-job:
+    runs-on: ubuntu-latest
+    steps:
+      run: exit 1
 
   call-reusable-workflow:
     uses: ./.github/workflows/on_fail.yml
+    if: failure()
     secrets: inherit
     with:
       workflow_id: 2746130246
