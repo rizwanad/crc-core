@@ -1,0 +1,20 @@
+name: Destroy back-end and front-end cloudformation stacks given a workflow ID.
+
+on:
+  workflow_call:
+    inputs:
+      workflow_id:
+        required: true
+        type: string
+
+jobs:
+  destroy-environment:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Destroy environments
+        if: failure()
+        run: |
+          aws s3 rm s3://crc-<<inputs.workflow_id>> --recursive
+          aws cloudformation delete-stack --stack-name udapeople-backend-<<inputs.workflow_id>>
+          aws cloudformation delete-stack --stack-name udapeople-frontend-<<inputs.workflow_id>>

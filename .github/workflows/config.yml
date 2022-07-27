@@ -1,53 +1,58 @@
-name: Test aws
+# https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#administrative-privileges
+
+name: Cloud resume CI/CD pipeline
 on: [push]
 
 jobs:
-  # deploy-infrastructure:
-  #   runs-on: ubuntu-latest
-  #   environment: production
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: aws-actions/configure-aws-credentials@v1
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: us-east-1
-  #     - name: Ensure frontend infrastucture exists
-  #       run: |
-  #         aws cloudformation deploy \
-  #           --template-file ./.github/files/frontend.yml \
-  #           --tags project=crc-core \
-  #           --stack-name "crc-frontend-${GITHUB_RUN_ID}" \
-  #           --parameter-overrides ID="${GITHUB_RUN_ID}"
+  deploy-infrastructure:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v3
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Ensure frontend infrastucture exists
+        run: |
+          aws cloudformation deploy \
+            --template-file ./.github/files/frontend.yml \
+            --tags project=crc-core \
+            --stack-name "crc-frontend-${GITHUB_RUN_ID}" \
+            --parameter-overrides ID="${GITHUB_RUN_ID}"
 
-  # deploy-backend:
-  #   runs-on: ubuntu-latest
-  #   environment: production
-  #   needs: deploy-infrastructure
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-python@v3
-  #       with:
-  #         python-version: "3.8"
-  #     - uses: aws-actions/setup-sam@v2
-  #     - uses: aws-actions/configure-aws-credentials@v1
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: us-east-1
+      - name: Fail job intentionally
+        run: exit 1
 
-  #     - run: sam build --use-container
-  #     - run: |
-  #         sam deploy --no-confirm-changeset \
-  #           --no-fail-on-empty-changeset \
-  #           --stack-name crc-backend-${GITHUB_RUN_ID} \
-  #           --s3-bucket crc-template-artifact \
-  #           --capabilities CAPABILITY_IAM
-  
+      - uses: ./.github/workflows/on_fail.yml
+  deploy-backend:
+    runs-on: ubuntu-latest
+    environment: production
+    needs: deploy-infrastructure
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.8"
+      - uses: aws-actions/setup-sam@v2
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - run: sam build --use-container
+      - run: |
+          sam deploy --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --stack-name crc-backend-${GITHUB_RUN_ID} \
+            --s3-bucket crc-template-artifact \
+            --capabilities CAPABILITY_IAM 
   deploy-frontend:
     runs-on: ubuntu-latest
     environment: production
-    # needs: deploy-backend
+    needs: deploy-backend
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -80,4 +85,73 @@ jobs:
           npm install
           npm run build
           tar -czvf artifact-"${GITHUB_RUN_ID}".tar.gz build
-          aws s3 cp build s3://crc-frontend-6a20da2 --recursive
+          aws s3 cp build s3://crc-${GITHUB_RUN_ID} --recursive
+
+  cloudfront-update:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v3
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get -y install curl
+      
+      - name: Update cloudfront distribution
+        run: |
+          export OldWorkflowID=$(aws cloudformation \
+            list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+            --no-paginate --output text)
+          echo OldWorkflowID: "${OldWorkflowID}"
+          curl --insecure https://kvdb.io/MYKoXF2eUZ9JKUmpeWoZ5e/old_workflow_id  -d "${OldWorkflowID}"
+
+          aws cloudformation deploy \
+            --template-file .github/files/cloudfront.yml \
+            --stack-name InitialStack \
+            --parameter-overrides WorkflowID="${GITHUB_RUN_ID}" \
+            --tags project=crc-core
+
+  cleanup:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v3
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Remove old stacks and files
+        run: |
+          export OldWorkflowID=$(curl --insecure https://kvdb.io/2Xppj9YmZdVP7PJCvFoRD6/old_workflow_id)
+          echo OldWorkflowID: "${OldWorkflowID}"
+
+          # Fetch the stack names          
+          export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
+            --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
+          echo Stack names: "${STACKS[@]}"
+
+          if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+          then
+            echo OldWorkflowID: "${OldWorkflowID}"
+            aws s3 rm "s3://crc-${OldWorkflowID}" --recursive
+            aws cloudformation delete-stack --stack-name "crc-backend-${OldWorkflowID}"
+            aws cloudformation delete-stack --stack-name "crc-frontend-${OldWorkflowID}"
+          fi
+
+
+  # failed-job:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Failing step
+  #       id: demo
+  #       run: exit 1
+  #     - name: The demo step has failed
+  #       if: failure()
+  #       run: echo "hello failed step"
