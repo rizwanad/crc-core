@@ -4,16 +4,16 @@ name: Cloud resume CI/CD pipeline
 on: [push]
 
 jobs:
-  failed-job:
-    runs-on: ubuntu-latest
-    steps:
-      - run: exit 1
+  # failed-job:
+  #   runs-on: ubuntu-latest
+  #   continue-on-error: true
+  #   steps:
+  #     - run: exit 1
 
-  run-when-previous-failed:
-    runs-on: ubuntu-latest
-    if: ${{failure()}}
-    steps:
-      - run: echo "Previous jobs fail"
+  # run-when-previous-failed:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - run: echo "Previous jobs fail"
 
   # call-reusable-workflow:
   #   uses: ./.github/workflows/on_fail.yml
@@ -21,26 +21,33 @@ jobs:
   #   with:
   #     workflow_id: 2746130246
 
-  # deploy-infrastructure:
-  #   runs-on: ubuntu-latest
-  #   environment: production
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: aws-actions/configure-aws-credentials@v1
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: us-east-1
-  #     - name: Ensure frontend infrastucture exists
-  #       run: |
-  #         aws cloudformation deploy \
-  #           --template-file ./.github/files/frontend.yml \
-  #           --tags project=crc-core \
-  #           --stack-name "crc-frontend-${GITHUB_RUN_ID}" \
-  #           --parameter-overrides ID="${GITHUB_RUN_ID}"
+  deploy-infrastructure:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v3
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Ensure frontend infrastucture exists
+        run: |
+          aws cloudformation deploy \
+            --template-file ./.github/files/frontend.yml \
+            --tags project=crc-core \
+            --stack-name "crc-frontend-${GITHUB_RUN_ID}" \
+            --parameter-overrides ID="${GITHUB_RUN_ID}"
 
-  #     - name: Fail job intentionally
-  #       run: exit 1
+      - name: Fail job intentionally
+        run: exit 1
+
+      - name: Destroy environments
+        if: failure()
+        run: |
+          aws s3 rm s3://crc-${GITHUB_RUN_ID} --recursive
+          aws cloudformation delete-stack --stack-name crc-backend-${GITHUB_RUN_ID}
+          aws cloudformation delete-stack --stack-name crc-frontend-${GITHUB_RUN_ID}
   # deploy-backend:
   #   runs-on: ubuntu-latest
   #   environment: production
