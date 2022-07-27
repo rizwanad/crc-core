@@ -24,9 +24,6 @@ jobs:
 
       - name: Fail job intentionally
         run: exit 1
-
-      - uses: ./.github/workflows/on_fail.yml
-        if: failure()
   deploy-backend:
     runs-on: ubuntu-latest
     environment: production
@@ -147,7 +144,13 @@ jobs:
             aws cloudformation delete-stack --stack-name "crc-backend-${OldWorkflowID}"
             aws cloudformation delete-stack --stack-name "crc-frontend-${OldWorkflowID}"
           fi
+  
 
+  destroy-env:
+    uses: ./.github/workflows/on_fail.yml
+    if: failure()
+    with:
+      workflow_id: ${GITHUB_RUN_ID}
 
   # failed-job:
   #   runs-on: ubuntu-latest
