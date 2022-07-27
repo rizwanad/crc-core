@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
+      - uses: actions/checkout@v3
       - name: Destroy environments
         run: |
           aws s3 rm s3://crc-<<inputs.workflow_id>> --recursive
