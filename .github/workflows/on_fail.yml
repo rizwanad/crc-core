@@ -6,7 +6,6 @@ on:
       workflow_id:
         required: true
         type: string
-
 jobs:
   destroy-environment:
     runs-on: ubuntu-latest

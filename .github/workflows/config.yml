@@ -7,6 +7,7 @@ jobs:
 
   call-reusable-workflow:
     uses: ./.github/workflows/on_fail.yml
+    secrets: inherit
     with:
       workflow_id: 2746130246
 
