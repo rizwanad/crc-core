@@ -1,5 +1,16 @@
 # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#administrative-privileges
 # https://github.blog/2022-02-10-using-reusable-workflows-github-actions/
+# https://wallis.dev/blog/composite-github-actions
+# https://docs.github.com/en/actions/creating-actions/about-custom-actions (Creating actions documentation)
+# https://docs.github.com/en/actions/using-workflows/about-workflows (Workflows documentation)
+# https://dev.to/n3wt0n/composite-actions-vs-reusable-workflows-what-is-the-difference-github-actions-11kd
+
+# Gihub hosted runners
+# https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#docker-container-filesystem
+
+# Workflow commands (Important)
+# https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable
+
 
 name: Cloud resume CI/CD pipeline
 on: [push]
