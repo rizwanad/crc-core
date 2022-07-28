@@ -1,0 +1,32 @@
+name: "Destroy environments"
+description: "Destroy back-end and front-end cloudformation stacks given a workflow ID"
+
+inputs:
+  aws-access-key-id:
+    required: true
+    description: "The aws-access-key-id used to authenticate with AWS"
+  aws-secret-access-key:
+    required: true
+    description: "The aws-secret-access-key used to authenticate with AWS"
+  aws-region:
+    required: true
+    description: "The aws-region"
+  workflow-id:
+    required: true
+    description: "Delete previous stacks against this workflow id"
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/checkout@v3
+    - uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Destroy environments
+      run: |
+        aws s3 rm s3://crc-${{inputs.workflow-id}} --recursive
+        aws cloudformation delete-stack --stack-name crc-backend-${{inputs.workflow-id}}
+        aws cloudformation delete-stack --stack-name crc-frontend-${{inputs.workflow-id}}

@@ -1,4 +1,5 @@
 # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#administrative-privileges
+# https://github.blog/2022-02-10-using-reusable-workflows-github-actions/
 
 name: Cloud resume CI/CD pipeline
 on: [push]
@@ -22,12 +23,20 @@ jobs:
             --stack-name "crc-frontend-${GITHUB_RUN_ID}" \
             --parameter-overrides ID="${GITHUB_RUN_ID}"
       
-      - name: Destroy environments
+      - uses: ./.github/actions/destroy-environment
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+          workflow-id: ${GITHUB_RUN_ID}
         if: failure()
-        run: |
-          aws s3 rm s3://crc-${GITHUB_RUN_ID} --recursive
-          aws cloudformation delete-stack --stack-name crc-backend-${GITHUB_RUN_ID}
-          aws cloudformation delete-stack --stack-name crc-frontend-${GITHUB_RUN_ID}
+      
+      # - name: Destroy environments
+      #   if: failure()
+      #   run: |
+      #     aws s3 rm s3://crc-${GITHUB_RUN_ID} --recursive
+      #     aws cloudformation delete-stack --stack-name crc-backend-${GITHUB_RUN_ID}
+      #     aws cloudformation delete-stack --stack-name crc-frontend-${GITHUB_RUN_ID}
   deploy-backend:
     runs-on: ubuntu-latest
     environment: production
@@ -52,12 +61,13 @@ jobs:
             --s3-bucket crc-template-artifact \
             --capabilities CAPABILITY_IAM 
 
-      - name: Destroy environments
+      - uses: ./.github/actions/destroy-environment
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+          workflow-id: ${GITHUB_RUN_ID}
         if: failure()
-        run: |
-          aws s3 rm s3://crc-${GITHUB_RUN_ID} --recursive
-          aws cloudformation delete-stack --stack-name crc-backend-${GITHUB_RUN_ID}
-          aws cloudformation delete-stack --stack-name crc-frontend-${GITHUB_RUN_ID}
   
   deploy-frontend:
     runs-on: ubuntu-latest
@@ -97,12 +107,13 @@ jobs:
           tar -czvf artifact-"${GITHUB_RUN_ID}".tar.gz build
           aws s3 cp build s3://crc-${GITHUB_RUN_ID} --recursive
 
-      - name: Destroy environments
+      - uses: ./.github/actions/destroy-environment
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+          workflow-id: ${GITHUB_RUN_ID}
         if: failure()
-        run: |
-          aws s3 rm s3://crc-${GITHUB_RUN_ID} --recursive
-          aws cloudformation delete-stack --stack-name crc-backend-${GITHUB_RUN_ID}
-          aws cloudformation delete-stack --stack-name crc-frontend-${GITHUB_RUN_ID}
   
   cloudfront-update:
     runs-on: ubuntu-latest
@@ -134,12 +145,13 @@ jobs:
             --parameter-overrides WorkflowID="${GITHUB_RUN_ID}" \
             --tags project=crc-core
 
-      - name: Destroy environments
+      - uses: ./.github/actions/destroy-environment
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+          workflow-id: ${GITHUB_RUN_ID}
         if: failure()
-        run: |
-          aws s3 rm s3://crc-${GITHUB_RUN_ID} --recursive
-          aws cloudformation delete-stack --stack-name crc-backend-${GITHUB_RUN_ID}
-          aws cloudformation delete-stack --stack-name crc-frontend-${GITHUB_RUN_ID}
 
   cleanup:
     runs-on: ubuntu-latest
