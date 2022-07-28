@@ -11,6 +11,7 @@
 # Workflow commands (Important)
 # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable
 
+# https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers.html
 
 name: Cloud resume CI/CD pipeline
 on: [push]
